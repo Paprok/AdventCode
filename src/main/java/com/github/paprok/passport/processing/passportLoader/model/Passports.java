@@ -28,15 +28,8 @@ public class Passports {
         }
     }
 
-    public int getValidPassportsNumber() {
-        return getValidPassportsNumber(0, passports);
-    }
-
-    private int getValidPassportsNumber(int number, Deque<Passport> passports) {
-        if(isNotEmpty(passports)) {
-            int newNumber = passports.pop().isValid() ? ++number : number;
-            return getValidPassportsNumber(newNumber, passports);
-        } else return number;
+    public long getValidPassportsNumber() {
+       return passports.stream().filter(Passport::isValid).count();
     }
 
     private boolean isNotEmpty(Deque<Passport> passports) {

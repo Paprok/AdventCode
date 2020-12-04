@@ -2,41 +2,53 @@ package com.github.paprok.passport.processing.passportLoader.model;
 
 import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Passport {
 
-    private Set<PassportField> fields;
+    private Map<PassportField, String> fields;
 
     public Passport() {
-        this.fields = new HashSet<>();
+        this.fields = new HashMap<>();
     }
 
     public void update(String line) {
         Arrays.stream(line.trim().split(" "))
-                .map(PassportField::getFieldByPair)
-                .forEach(field -> fields.add(field));
+                .map(PassportField::getKeyValuePair)
+                .forEach(pair -> fields.put(pair.getKey(), pair.getValue()));
     }
 
-    public boolean isValid() {
-        return hasAllFields() || hasOnlyCidMissing();
+    private boolean hasAllFields(long validFields) {
+        return validFields == PassportField.values().length;
     }
 
-    private boolean hasOnlyCidMissing() {
-        return hasOneMissing() && hasCidMissing();
+    private boolean hasOnlyCidMissing(long validFields) {
+        return hasOneMissing(validFields) && hasCidMissing();
     }
 
     private boolean hasCidMissing() {
-        return !fields.contains(PassportField.CID);
+        return !fields.containsKey(PassportField.CID);
     }
 
-    private boolean hasOneMissing() {
-        return fields.size() == PassportField.values().length - 1;
+    private boolean hasOneMissing(long validFields) {
+        return validFields == PassportField.values().length - 1;
     }
 
-    private boolean hasAllFields() {
-        return fields.size() == PassportField.values().length;
+   public boolean isValid() {
+        long validFieldsCount = fields.entrySet().stream()
+                .filter(this::validateFieldPair)
+                .count();
+        return hasAllFields(validFieldsCount) || hasOnlyCidMissing(validFieldsCount);
+    }
+
+    private boolean validateFieldPair(Map.Entry<PassportField, String> keyValuePair) {
+        PassportField field = keyValuePair.getKey();
+        String value = keyValuePair.getValue();
+
+        try {
+            return field.validator.test(value);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -19,14 +19,15 @@ public class PassportLoaderTest {
 
     @Test
     @SneakyThrows
-    public void testThatGetsRightNumberOfPassportsForPreparedFile() {
+    public void testThatGetsRightNumberOfPassportsForPreparedFile() throws IOException {
         //given
-        int expected = 2;
+        long expected = 4L;
 
         //when
-        int actual = loader.getPassports().getValidPassportsNumber();
+        long actual = loader.getPassports().getValidPassportsNumber();
 
         //then
         assertEquals(expected, actual);
     }
+
 }
